@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>多站点访问应用</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- Tailwind Config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary': '#3498db',
+            'secondary': '#2ecc71',
+            'danger': '#e74c3c',
+            'warning': '#f39c12',
+            'dark': {
+              'bg': '#0c1220',
+              'card': '#162032',
+              'border': '#2a3a50'
+            }
+          },
+          fontFamily: {
+            'sans': ['Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+      .border-glow {
+        box-shadow: 0 0 5px theme('colors.primary');
+      }
+      .btn-hover {
+        transition: all 0.2s ease;
+      }
+      .btn-hover:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        border-color: #3498db;
+      }
+    }
+    
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #162032;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a3a50;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3498db;
+    }
+    
+    /* 动画效果 */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    /* iframe样式 */
+    iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body class="bg-dark-bg text-gray-200 min-h-screen">
+  <!-- 加载动画 -->
+  <div id="loading" class="fixed inset-0 bg-dark-bg flex items-center justify-center z-50 animate-fadeIn">
+    <div class="text-center">
+      <div class="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p class="text-white">加载中...</p>
+    </div>
+  </div>
+  
+  <!-- 主容器 -->
+  <div id="app" class="h-screen flex flex-col opacity-0 transition-opacity duration-300">
+    <!-- 顶部导航栏 -->
+    <header class="bg-dark-card border-b border-dark-border py-3 px-4 flex items-center justify-between">
+      <h1 class="text-xl font-bold text-white flex items-center">
+        <i class="fa fa-bars text-primary mr-2"></i>
+        <span>多站点访问应用</span>
+      </h1>
+      <div class="flex space-x-3">
+        <button id="refreshBtn" class="bg-dark-border hover:bg-gray-700 text-white p-2 rounded btn-hover">
+          <i class="fa fa-refresh"></i>
+        </button>
+        <button id="homeBtn" class="bg-dark-border hover:bg-gray-700 text-white p-2 rounded btn-hover">
+          <i class="fa fa-home"></i>
+        </button>
+      </div>
+    </header>
+    
+    <!-- 内容区域 -->
+    <main class="flex-1 overflow-hidden">
+      <!-- 站点选择界面 -->
+      <div id="siteSelection" class="h-full flex flex-col p-4 animate-fadeIn">
+        <div class="mb-6">
+          <h2 class="text-lg font-semibold text-white mb-2">选择站点</h2>
+          <p class="text-gray-400 text-sm">点击下方卡片访问相应站点</p>
+        </div>
+        
+        <!-- 站点卡片网格 -->
+        <div class="grid grid-cols-1 gap-4 flex-1">
+          <!-- 站点1 -->
+          <div class="site-card bg-dark-card border border-dark-border rounded-lg p-5 cursor-pointer card-hover" data-url="https://office.imatrixoffice.com/index.php?client=ihl">
+            <div class="flex items-start">
+              <div class="p-3 rounded-full bg-blue-500/10 text-blue-400 mr-4">
+                <i class="fa fa-building text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-white font-medium mb-1">iMatrix Office</h3>
+                <p class="text-gray-400 text-sm mb-2">美国后台</p>
+                <div class="flex items-center text-xs text-gray-500">
+                  <i class="fa fa-link mr-1"></i>
+                  <span>office.imatrixoffice.com</span>
+                </div>
+              </div>
+              <div class="text-gray-400">
+                <i class="fa fa-chevron-right"></i>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 站点2 -->
+          <div class="site-card bg-dark-card border border-dark-border rounded-lg p-5 cursor-pointer card-hover" data-url="https://xjp.150timehk.com/#/index?VNK=71ea8ff5">
+            <div class="flex items-start">
+              <div class="p-3 rounded-full bg-green-500/10 text-green-400 mr-4">
+                <i class="fa fa-shopping-bag text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-white font-medium mb-1">150TimeHK</h3>
+                <p class="text-gray-400 text-sm mb-2">150仓</p>
+                <div class="flex items-center text-xs text-gray-500">
+                  <i class="fa fa-link mr-1"></i>
+                  <span>xjp.150timehk.com</span>
+                </div>
+              </div>
+              <div class="text-gray-400">
+                <i class="fa fa-chevron-right"></i>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 站点3 -->
+          <div class="site-card bg-dark-card border border-dark-border rounded-lg p-5 cursor-pointer card-hover" data-url="https://www.ailifehk.com/">
+            <div class="flex items-start">
+              <div class="p-3 rounded-full bg-purple-500/10 text-purple-400 mr-4">
+                <i class="fa fa-heartbeat text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-white font-medium mb-1">AiLifeHK</h3>
+                <p class="text-gray-400 text-sm mb-2">东南亚仓</p>
+                <div class="flex items-center text-xs text-gray-500">
+                  <i class="fa fa-link mr-1"></i>
+                  <span>www.ailifehk.com</span>
+                </div>
+              </div>
+              <div class="text-gray-400">
+                <i class="fa fa-chevron-right"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 底部信息 -->
+        <div class="mt-6 text-center text-gray-500 text-xs">
+          <p>多站点访问应用 v1.0</p>
+          <p class="mt-1">点击站点卡片开始访问</p>
+        </div>
+      </div>
+      
+      <!-- 站点访问界面 -->
+      <div id="siteView" class="h-full hidden">
+        <div class="h-full relative">
+          <!-- 顶部站点信息栏 -->
+          <div id="siteInfo" class="absolute top-0 left-0 right-0 bg-dark-card/90 backdrop-blur-sm border-b border-dark-border py-2 px-4 z-10 flex items-center">
+            <button id="backBtn" class="text-white p-2 mr-2">
+              <i class="fa fa-arrow-left"></i>
+            </button>
+            <div class="flex-1 overflow-hidden">
+              <h3 id="siteTitle" class="text-white text-sm font-medium truncate"></h3>
+              <p id="siteUrl" class="text-gray-400 text-xs truncate"></p>
+            </div>
+          </div>
+          
+          <!-- 加载进度条 -->
+          <div id="progressBar" class="absolute top-0 left-0 right-0 h-1 bg-primary transform scale-x-0 origin-left transition-transform duration-300 z-20"></div>
+          
+          <!-- iframe容器 -->
+          <div class="h-full pt-16">
+            <iframe id="siteIframe" src="" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <!-- 底部导航栏 -->
+    <footer class="bg-dark-card border-t border-dark-border py-2 px-4">
+      <div class="flex justify-around">
+        <button id="navHome" class="flex flex-col items-center text-primary">
+          <i class="fa fa-th-large text-lg"></i>
+          <span class="text-xs mt-1">首页</span>
+        </button>
+        <button id="navFavorites" class="flex flex-col items-center text-gray-400">
+          <i class="fa fa-star text-lg"></i>
+          <span class="text-xs mt-1">收藏</span>
+        </button>
+        <button id="navSettings" class="flex flex-col items-center text-gray-400">
+          <i class="fa fa-cog text-lg"></i>
+          <span class="text-xs mt-1">设置</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // 全局变量
+    let currentUrl = '';
+    let isLoading = false;
+    
+    // 初始化应用
+    document.addEventListener('DOMContentLoaded', function() {
+      // 隐藏加载动画，显示应用
+      setTimeout(function() {
+        document.getElementById('loading').classList.add('opacity-0');
+        setTimeout(function() {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('app').classList.remove('opacity-0');
+        }, 300);
+      }, 1000);
+      
+      // 初始化事件监听
+      initEventListeners();
+    });
+    
+    // 初始化事件监听
+    function initEventListeners() {
+      // 站点卡片点击事件
+      document.querySelectorAll('.site-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const url = this.getAttribute('data-url');
+          navigateToSite(url);
+        });
+      });
+      
+      // 返回按钮点击事件
+      document.getElementById('backBtn').addEventListener('click', function() {
+        backToHome();
+      });
+      
+      // 刷新按钮点击事件
+      document.getElementById('refreshBtn').addEventListener('click', function() {
+        refreshSite();
+      });
+      
+      // 主页按钮点击事件
+      document.getElementById('homeBtn').addEventListener('click', function() {
+        backToHome();
+      });
+      
+      // 底部导航按钮点击事件
+      document.getElementById('navHome').addEventListener('click', function() {
+        backToHome();
+        updateNavActive('navHome');
+      });
+      
+      document.getElementById('navFavorites').addEventListener('click', function() {
+        showNotification('info', '功能提示', '收藏功能即将上线');
+        updateNavActive('navFavorites');
+      });
+      
+      document.getElementById('navSettings').addEventListener('click', function() {
+        showNotification('info', '功能提示', '设置功能即将上线');
+        updateNavActive('navSettings');
+      });
+      
+      // iframe加载事件
+      const iframe = document.getElementById('siteIframe');
+      iframe.addEventListener('load', function() {
+        hideProgressBar();
+        updateSiteInfo(iframe.contentWindow.location.href);
+      });
+      
+      // iframe开始加载事件
+      iframe.addEventListener('loadstart', function() {
+        showProgressBar();
+      });
+    }
+    
+    // 导航到站点
+    function navigateToSite(url) {
+      currentUrl = url;
+      
+      // 更新UI
+      document.getElementById('siteSelection').classList.add('hidden');
+      document.getElementById('siteView').classList.remove('hidden');
+      
+      // 更新站点信息
+      updateSiteInfo(url);
+      
+      // 加载iframe
+      showProgressBar();
+      document.getElementById('siteIframe').src = url;
+    }
+    
+    // 返回主页
+    function backToHome() {
+      document.getElementById('siteView').classList.add('hidden');
+      document.getElementById('siteSelection').classList.remove('hidden');
+      currentUrl = '';
+    }
+    
+    // 刷新当前站点
+    function refreshSite() {
+      if (currentUrl) {
+        showProgressBar();
+        document.getElementById('siteIframe').src = currentUrl;
+      }
+    }
+    
+    // 更新站点信息
+    function updateSiteInfo(url) {
+      const siteTitle = document.getElementById('siteTitle');
+      const siteUrl = document.getElementById('siteUrl');
+      
+      // 从URL中提取站点名称
+      let title = '';
+      if (url.includes('imatrixoffice')) {
+        title = 'iMatrix Office';
+      } else if (url.includes('150timehk')) {
+        title = '150TimeHK';
+      } else if (url.includes('ailifehk')) {
+        title = 'AiLifeHK';
+      } else {
+        title = '未知站点';
+      }
+      
+      siteTitle.textContent = title;
+      siteUrl.textContent = url;
+    }
+    
+    // 显示进度条
+    function showProgressBar() {
+      const progressBar = document.getElementById('progressBar');
+      progressBar.style.transform = 'scale-x(0.3)';
+      
+      // 模拟加载进度
+      let progress = 0.3;
+      const interval = setInterval(function() {
+        progress += 0.1;
+        if (progress >= 0.9) {
+          clearInterval(interval);
+        }
+        progressBar.style.transform = `scale-x(${progress})`;
+      }, 200);
+    }
+    
+    // 隐藏进度条
+    function hideProgressBar() {
+      const progressBar = document.getElementById('progressBar');
+      progressBar.style.transform = 'scale-x(1)';
+      setTimeout(function() {
+        progressBar.style.transform = 'scale-x(0)';
+      }, 300);
+    }
+    
+    // 更新导航栏激活状态
+    function updateNavActive(activeId) {
+      // 重置所有导航按钮
+      document.querySelectorAll('footer button').forEach(btn => {
+        btn.classList.remove('text-primary');
+        btn.classList.add('text-gray-400');
+      });
+      
+      // 激活当前按钮
+      document.getElementById(activeId).classList.remove('text-gray-400');
+      document.getElementById(activeId).classList.add('text-primary');
+    }
+    
+    // 显示通知
+    function showNotification(type, title, message) {
+      // 创建通知元素
+      const notification = document.createElement('div');
+      notification.className = 'fixed bottom-20 left-4 right-4 bg-dark-card border border-dark-border rounded p-4 shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 max-w-xs mx-auto';
+      
+      // 设置通知内容
+      let iconClass = 'fa-info-circle';
+      let iconColor = 'text-primary';
+      
+      if (type === 'success') {
+        iconClass = 'fa-check-circle';
+        iconColor = 'text-secondary';
+      } else if (type === 'error') {
+        iconClass = 'fa-exclamation-circle';
+        iconColor = 'text-danger';
+      } else if (type === 'warning') {
+        iconClass = 'fa-exclamation-triangle';
+        iconColor = 'text-warning';
+      }
+      
+      notification.innerHTML = `
+        <div class="flex items-start">
+          <div class="mr-3 ${iconColor}">
+            <i class="fa ${iconClass} text-xl"></i>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-white font-medium">${title}</h3>
+            <p class="text-gray-400 text-sm mt-1">${message}</p>
+          </div>
+          <button class="ml-auto text-gray-400 hover:text-white close-notification">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+      `;
+      
+      // 添加到页面
+      document.body.appendChild(notification);
+      
+      // 显示通知
+      setTimeout(function() {
+        notification.classList.remove('translate-y-20', 'opacity-0');
+      }, 10);
+      
+      // 关闭通知
+      notification.querySelector('.close-notification').addEventListener('click', function() {
+        hideNotification(notification);
+      });
+      
+      // 自动关闭
+      setTimeout(function() {
+        hideNotification(notification);
+      }, 3000);
+    }
+    
+    // 隐藏通知
+    function hideNotification(notification) {
+      notification.classList.add('translate-y-20', 'opacity-0');
+      setTimeout(function() {
+        notification.remove();
+      }, 300);
+    }
+  </script>
+</body>
+</html>
